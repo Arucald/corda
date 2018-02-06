@@ -350,6 +350,48 @@ class RPCStabilityTests {
         }
     }
 
+    interface StreamOps : RPCOps {
+        fun stream(streamInterval: Duration): Observable<Long>
+    }
+    class StreamOpsImpl : StreamOps {
+        override val protocolVersion = 0
+        override fun stream(streamInterval: Duration): Observable<Long> {
+            return Observable.interval(streamInterval.toNanos(), TimeUnit.NANOSECONDS)
+        }
+    }
+    @Test
+    fun `deduplication on the client side`() {
+        rpcDriver {
+            val server = startRpcServer(ops = StreamOpsImpl()).getOrThrow()
+            val proxy = startRpcClient<StreamOps>(
+                    server.broker.hostAndPort!!,
+                    configuration = RPCClientConfiguration.default.copy(
+                            // Set this in the milliseconds range to start seeing duplicates appearing.
+                            // By default this is 30 seconds which should be fine, setting this to 10 minutes here to
+                            // avoid any chance of flakiness.
+                            deduplicationCacheExpiry = 10.minutes
+                    )
+            ).getOrThrow()
+            // Find the internal address of the client
+            val clientAddress = server.broker.serverControl.addressNames.find { it.startsWith(RPCApi.RPC_CLIENT_QUEUE_NAME_PREFIX) }
+            val events = ArrayList<Long>()
+            // Start streaming an incrementing value 2000 times per second from the server.
+            val subscription = proxy.stream(streamInterval = Duration.ofNanos(500_000)).subscribe {
+                events.add(it)
+            }
+            // These sleeps are *fine*, the invariant should hold as long as a delay doesn't exceed the dedupe cache expiry duration
+            Thread.sleep(50)
+            // Kick the client. This seems to trigger redelivery of (presumably non-acked) messages.
+            server.broker.serverControl.closeConsumerConnectionsForAddress(clientAddress)
+            Thread.sleep(50)
+            subscription.unsubscribe()
+            for (i in 0 until events.size) {
+                require(events[i] == i.toLong()) {
+                    "Events not incremental, possible duplicate\nExpected: ${(0..i).toList()}\nGot     : $events\n"
+                }
+            }
+        }
+    }
 }
 
 fun RPCDriverDSL.pollUntilClientNumber(server: RpcServerHandle, expected: Int) {
