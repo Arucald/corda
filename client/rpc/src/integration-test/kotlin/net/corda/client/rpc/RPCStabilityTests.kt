@@ -363,15 +363,7 @@ class RPCStabilityTests {
     fun `deduplication on the client side`() {
         rpcDriver {
             val server = startRpcServer(ops = StreamOpsImpl()).getOrThrow()
-            val proxy = startRpcClient<StreamOps>(
-                    server.broker.hostAndPort!!,
-                    configuration = RPCClientConfiguration.default.copy(
-                            // Set this in the milliseconds range to start seeing duplicates appearing.
-                            // By default this is 30 seconds which should be fine, setting this to 10 minutes here to
-                            // avoid any chance of flakiness.
-                            deduplicationCacheExpiry = 10.minutes
-                    )
-            ).getOrThrow()
+            val proxy = startRpcClient<StreamOps>(server.broker.hostAndPort!!).getOrThrow()
             // Find the internal address of the client
             val clientAddress = server.broker.serverControl.addressNames.find { it.startsWith(RPCApi.RPC_CLIENT_QUEUE_NAME_PREFIX) }
             val events = ArrayList<Long>()
@@ -379,7 +371,7 @@ class RPCStabilityTests {
             val subscription = proxy.stream(streamInterval = Duration.ofNanos(500_000)).subscribe {
                 events.add(it)
             }
-            // These sleeps are *fine*, the invariant should hold as long as a delay doesn't exceed the dedupe cache expiry duration
+            // These sleeps are *fine*, the invariant should hold regardless of any delays
             Thread.sleep(50)
             // Kick the client. This seems to trigger redelivery of (presumably non-acked) messages.
             server.broker.serverControl.closeConsumerConnectionsForAddress(clientAddress)

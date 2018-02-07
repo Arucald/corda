@@ -33,7 +33,7 @@ import net.corda.node.internal.security.AuthorizingSubject
 import net.corda.node.internal.security.RPCSecurityManager
 import net.corda.node.services.logging.pushToLoggingContext
 import net.corda.nodeapi.*
-import net.corda.nodeapi.internal.ArtemisDeduplicationCache
+import net.corda.nodeapi.internal.ArtemisDeduplicationChecker
 import org.apache.activemq.artemis.api.core.Message
 import org.apache.activemq.artemis.api.core.SimpleString
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient.DEFAULT_ACK_BATCH_SIZE
@@ -63,17 +63,14 @@ data class RPCServerConfiguration(
         /** The maximum number of producers to create to handle outgoing messages */
         val producerPoolBound: Int,
         /** The interval of subscription reaping */
-        val reapInterval: Duration,
-        /** The duration after which a message ID is released from the deduplication cache. */
-        val deduplicationCacheExpiry: Duration
+        val reapInterval: Duration
 ) {
     companion object {
         val default = RPCServerConfiguration(
                 rpcThreadPoolSize = 4,
                 consumerPoolSize = 2,
                 producerPoolBound = 4,
-                reapInterval = 1.seconds,
-                deduplicationCacheExpiry = 30.seconds
+                reapInterval = 1.seconds
         )
     }
 }
@@ -139,7 +136,7 @@ class RPCServer(
 
     private val responseMessageBuffer = ConcurrentHashMap<SimpleString, BufferOrNone>()
 
-    private val deduplicationCache = ArtemisDeduplicationCache(rpcConfiguration.deduplicationCacheExpiry)
+    private val deduplicationChecker = ArtemisDeduplicationChecker()
 
     init {
         val groupedMethods = ops.javaClass.declaredMethods.groupBy { it.name }
@@ -277,7 +274,7 @@ class RPCServer(
     }
 
     private fun clientArtemisMessageHandler(artemisMessage: ClientMessage) {
-        if (deduplicationCache.checkDuplicateMessageId(artemisMessage.messageID)) {
+        if (deduplicationChecker.checkDuplicateMessageId(artemisMessage.messageID)) {
             log.info("Message duplication detected, discarding message")
             return
         }

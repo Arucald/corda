@@ -59,9 +59,7 @@ data class RPCClientConfiguration(
         /** Maximum reconnect attempts on failover */
         val maxReconnectAttempts: Int,
         /** Maximum file size */
-        val maxFileSize: Int,
-        /** The duration after which a message ID is released from the deduplication cache. */
-        val deduplicationCacheExpiry: Duration
+        val maxFileSize: Int
 ) {
     companion object {
         val unlimitedReconnectAttempts = -1
@@ -78,8 +76,7 @@ data class RPCClientConfiguration(
                 connectionMaxRetryInterval = 3.minutes,
                 maxReconnectAttempts = unlimitedReconnectAttempts,
                 /** 10 MiB maximum allowed file size for attachments, including message headers. TODO: acquire this value from Network Map when supported. */
-                maxFileSize = 10485760,
-                deduplicationCacheExpiry = 30.seconds
+                maxFileSize = 10485760
         )
     }
 }
