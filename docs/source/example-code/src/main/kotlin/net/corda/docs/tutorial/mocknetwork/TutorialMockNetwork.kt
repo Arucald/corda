@@ -14,6 +14,8 @@ import net.corda.core.utilities.getOrThrow
 import net.corda.core.utilities.unwrap
 import net.corda.node.internal.StartedNode
 import net.corda.node.services.messaging.Message
+import net.corda.node.services.statemachine.DataSessionMessage
+import net.corda.node.services.statemachine.ExistingSessionMessage
 import net.corda.node.services.statemachine.SessionData
 import net.corda.testing.node.*
 import org.junit.After
@@ -82,7 +84,7 @@ class TutorialMockNetwork {
             override fun send(message: Message, target: MessageRecipients, retryId: Long?, sequenceKey: Any, acknowledgementHandler: (() -> Unit)?) {
                 val messageData = message.data.deserialize<Any>()
 
-                if (messageData is SessionData && messageData.payload.deserialize() == 1) {
+                if (messageData is ExistingSessionMessage && messageData.payload is DataSessionMessage && messageData.payload.payload.deserialize() == 1) {
                     val alteredMessageData = SessionData(messageData.recipientSessionId, 99.serialize()).serialize().bytes
                     messagingService.send(InMemoryMessagingNetwork.InMemoryMessage(message.topicSession, alteredMessageData, message.uniqueMessageId), target, retryId)
                 } else {
