@@ -29,7 +29,6 @@ import net.corda.node.VersionInfo
 import net.corda.node.internal.AbstractNode
 import net.corda.node.internal.StartedNode
 import net.corda.node.internal.cordapp.CordappLoader
-import net.corda.node.services.api.IdentityServiceInternal
 import net.corda.node.services.api.SchemaService
 import net.corda.node.services.config.*
 import net.corda.node.services.keys.E2ETestKeyManagementService
@@ -45,13 +44,13 @@ import net.corda.nodeapi.internal.network.NetworkParametersCopier
 import net.corda.nodeapi.internal.network.NotaryInfo
 import net.corda.nodeapi.internal.persistence.CordaPersistence
 import net.corda.nodeapi.internal.persistence.DatabaseConfig
-import net.corda.testing.core.DUMMY_NOTARY_NAME
 import net.corda.testing.common.internal.testNetworkParameters
+import net.corda.testing.core.DUMMY_NOTARY_NAME
+import net.corda.testing.core.setGlobalSerialization
 import net.corda.testing.internal.rigorousMock
 import net.corda.testing.internal.testThreadFactory
 import net.corda.testing.node.MockServices.Companion.MOCK_VERSION_INFO
 import net.corda.testing.node.MockServices.Companion.makeTestDataSourceProperties
-import net.corda.testing.core.setGlobalSerialization
 import org.apache.activemq.artemis.utils.ReusableLatch
 import org.apache.sshd.common.util.security.SecurityUtils
 import rx.internal.schedulers.CachedThreadScheduler
@@ -313,7 +312,7 @@ open class MockNetwork(private val cordappPackages: List<String>,
             network = messagingServiceSpy
         }
 
-        override fun makeKeyManagementService(identityService: IdentityServiceInternal, keyPairs: Set<KeyPair>): KeyManagementService {
+        override fun makeKeyManagementService(identityService: IdentityService, keyPairs: Set<KeyPair>): KeyManagementService {
             return E2ETestKeyManagementService(identityService, keyPairs)
         }
 
