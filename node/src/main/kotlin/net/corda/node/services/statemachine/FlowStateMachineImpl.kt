@@ -338,7 +338,7 @@ class FlowStateMachineImpl<R>(override val id: StateMachineRunId,
                 state = FlowSessionState.Initiated(
                         sessionInitResponse.
                         peerParty,
-                        sessionInitResponse.message.recipientSessionId,
+                        payload.initiatedSessionId,
                         payload.initiatedFlowInfo)
             }
             is RejectSessionMessage -> {
@@ -357,12 +357,14 @@ class FlowStateMachineImpl<R>(override val id: StateMachineRunId,
     @Suspendable
     private fun sendInternal(session: FlowSessionInternal, message: SessionMessage) = suspend(SendOnly(session, message))
 
+    @Suspendable
     private fun receiveInternal(
             session: FlowSessionInternal,
             userReceiveType: Class<*>?): ReceivedSessionMessage {
         return waitForMessage(ReceiveOnly(session, userReceiveType))
     }
 
+    @Suspendable
     private fun sendAndReceiveInternal(
             session: FlowSessionInternal,
             message: DataSessionMessage,
