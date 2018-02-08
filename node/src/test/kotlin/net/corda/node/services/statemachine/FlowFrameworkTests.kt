@@ -296,7 +296,7 @@ class FlowFrameworkTests {
         mockNet.runNetwork()
         assertThatExceptionOfType(UnexpectedFlowEndException::class.java).isThrownBy {
             resultFuture.getOrThrow()
-        }.withMessageContaining(String::class.java.name)  // Make sure the exception message mentions the type the flow was expecting to receive
+        }
     }
 
     @Test

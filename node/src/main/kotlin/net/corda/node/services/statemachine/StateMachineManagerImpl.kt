@@ -302,7 +302,7 @@ class StateMachineManagerImpl(
                     serviceHub.networkService.cancelRedelivery(session.ourSessionId.toLong)
                 }
             }
-            if (message.payload is EndSessionMessage) {
+            if (message.payload is EndSessionMessage || message.payload is ErrorSessionMessage) {
                 openSessions.remove(message.recipientSessionId)
             }
             session.receivedMessages += ReceivedSessionMessage(sender, message)

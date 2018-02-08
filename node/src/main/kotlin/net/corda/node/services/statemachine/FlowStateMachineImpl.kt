@@ -10,7 +10,6 @@ import net.corda.core.concurrent.CordaFuture
 import net.corda.core.context.InvocationContext
 import net.corda.core.crypto.SecureHash
 import net.corda.core.crypto.newSecureRandom
-import net.corda.core.crypto.random63BitValue
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
 import net.corda.core.identity.PartyAndCertificate
@@ -465,6 +464,7 @@ class FlowStateMachineImpl<R>(override val id: StateMachineRunId,
                 return this
             }
             is ErrorSessionMessage -> {
+                openSessions.values.remove(session)
                 session.erroredEnd(payload.flowException)
             }
             is RejectSessionMessage -> {
