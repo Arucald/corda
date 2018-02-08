@@ -148,7 +148,7 @@ open class MockServices private constructor(
      * (you can get one from [makeTestIdentityService]) and which represents the given identity.
      */
     @JvmOverloads
-    constructor(cordappPackages: List<String>, identityService: IdentityService = makeTestIdentityService(), initialIdentityName: CordaX500Name) : this(cordappPackages, identityService, TestIdentity(initialIdentityName))
+    constructor(cordappPackages: List<String>, identityService: IdentityService = makeTestIdentityService(), initialIdentityName: CordaX500Name = CordaX500Name("DefaultIdentity", "DefaultLocality", "GB")) : this(cordappPackages, identityService, TestIdentity(initialIdentityName))
 
     /**
      * Create a mock [ServiceHub] which uses the package of the caller to find CorDapp code. It uses the provided identity service
