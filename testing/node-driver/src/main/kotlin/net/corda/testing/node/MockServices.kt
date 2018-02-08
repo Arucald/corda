@@ -163,7 +163,7 @@ open class MockServices private constructor(
      * (you can get one from [makeTestIdentityService]) and which represents the given identity. It has no keys.
      */
     @JvmOverloads
-    constructor(identityService: IdentityService = makeTestIdentityService(), initialIdentityName: CordaX500Name)
+    constructor(identityService: IdentityService = makeTestIdentityService(), initialIdentityName: CordaX500Name = CordaX500Name("DefaultIdentity", "DefaultLocality", "GB"))
             : this(listOf(getCallerPackage()), identityService, TestIdentity(initialIdentityName))
 
     /**
