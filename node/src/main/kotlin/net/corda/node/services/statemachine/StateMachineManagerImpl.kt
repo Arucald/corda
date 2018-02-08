@@ -38,7 +38,6 @@ import net.corda.node.services.api.CheckpointStorage
 import net.corda.node.services.api.ServiceHubInternal
 import net.corda.node.services.config.shouldCheckCheckpoints
 import net.corda.node.services.messaging.ReceivedMessage
-import net.corda.node.services.messaging.TopicSession
 import net.corda.node.utilities.AffinityExecutor
 import net.corda.node.utilities.newNamedSingleThreadExecutor
 import net.corda.nodeapi.internal.persistence.CordaPersistence
@@ -73,7 +72,7 @@ class StateMachineManagerImpl(
 
     companion object {
         private val logger = contextLogger()
-        internal val sessionTopic = TopicSession("platform.session")
+        internal val sessionTopic = "platform.session"
 
         init {
             Fiber.setDefaultUncaughtExceptionHandler { fiber, throwable ->
